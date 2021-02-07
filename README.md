@@ -1,1 +1,1 @@
-# Transact-Structured-Query-Language-practice-queries
+# Transact Structured Query Language practice queries
