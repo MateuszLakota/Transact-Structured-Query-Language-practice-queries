@@ -1224,82 +1224,189 @@ WHERE Employee.Salary = (
 	SELECT MAX(Employee.Salary)
 	FROM Employee);
 --6.2
-SELECT 
-FROM ;
+SELECT Employee.*
+FROM Employee
+WHERE Employee.Salary > (
+	SELECT AVG(Employee.Salary)
+	FROM Employee);
 --6.3
-SELECT 
-FROM ;
+SELECT Employee.*
+FROM Employee
+WHERE DATEDIFF(YEAR, Employee.BirthDate, GETDATE()) = (
+	SELECT MIN(DATEDIFF(YEAR, Employee.BirthDate, GETDATE()))
+	FROM Employee);
 --6.4
-SELECT 
-FROM ;
+SELECT Employee.*
+FROM Employee
+WHERE Employee.Salary + 200 = (
+	SELECT DISTINCT Employee.Salary
+	FROM Employee
+	INNER JOIN Department ON Employee.Id = Department.ManagerId
+	WHERE Employee.DepartmentId = 1);
 --6.5
-SELECT 
-FROM ;
+SELECT Employee.*, AverageSalary.AverageSalary - Employee.Salary AS DifferenceBetweenAverageSalaryAndEmployeesSalary
+FROM Employee
+CROSS JOIN (
+	SELECT AVG(Employee.Salary) AS AverageSalary
+	FROM Employee) AS AverageSalary
+WHERE Employee.Salary < AverageSalary.AverageSalary;
 --6.6
-SELECT 
-FROM ;
+SELECT SUM(Ciphers.Ciphers) AS SumOfCiphersFrom1to3
+FROM (
+	SELECT 1 AS Ciphers
+	UNION ALL
+	SELECT 2
+	UNION ALL
+	SELECT 3) AS Ciphers;
 --6.7
-SELECT 
-FROM ;
+SELECT COUNT(Employee.Id) AS NumberOfPresentEmployees, (
+	SELECT COUNT(FormerEmployee.Id)
+	FROM FormerEmployee) AS NumberOfFormerEmployees
+FROM Employee;
 --6.8
-SELECT 
-FROM ;
+SELECT Employee.FirstName, Employee.LastName, 'Salary lower than average salary.' AS Description
+FROM Employee
+WHERE Employee.Salary < (
+	SELECT AVG(Employee.Salary)
+	FROM Employee)
+UNION ALL
+SELECT Employee.FirstName, Employee.LastName, 'Salary equal to average salary.'
+FROM Employee
+WHERE Employee.Salary = (
+	SELECT AVG(Employee.Salary)
+	FROM Employee)
+UNION ALL
+SELECT Employee.FirstName, Employee.LastName, 'Salary higher than average salary.'
+FROM Employee
+WHERE Employee.Salary > (
+	SELECT AVG(Employee.Salary)
+	FROM Employee);
 --6.9
-SELECT 
-FROM ;
+SELECT SUM(NumberOfActiveAndFormerEmployees.Value) AS NumberOfActiveAndFormerEmployees
+FROM (SELECT COUNT(Employee.Id) AS Value
+FROM Employee
+UNION ALL
+SELECT COUNT(FormerEmployee.Id)
+FROM FormerEmployee) AS NumberOfActiveAndFormerEmployees;
 --6.10
-SELECT 
-FROM ;
+SELECT MAX(LEN(FemaleNames.FemaleName)) AS NumberOfLettersInALongestFemaleName
+FROM (
+	SELECT 'Magdalena' AS FemaleName
+	UNION ALL
+	SELECT 'Katarzyna'
+	UNION ALL
+	SELECT 'Agnieszka') AS FemaleNames;
 --6.11
-SELECT 
-FROM ;
+SELECT Employee.FirstName
+FROM Employee
+WHERE LEN(Employee.FirstName) = (
+	SELECT MAX(LEN(Employee.FirstName))
+	FROM Employee);
 --6.12
-SELECT 
-FROM ;
+SELECT Employee.FirstName, Employee.LastName, 'Female' AS Gender
+FROM Employee
+WHERE Employee.Gender = 'W'
+UNION ALL
+SELECT Employee.FirstName, Employee.LastName, 'Male' AS Gender
+FROM Employee
+WHERE Employee.Gender = 'M';
 --6.13
-SELECT 
-FROM ;
+SELECT Employee.FirstName, Employee.LastName, Employee.Salary
+FROM Employee
+INNER JOIN (
+	SELECT Employee.DepartmentId, AVG(Employee.Salary) AS AverageSalary
+	FROM Employee
+	GROUP BY Employee.DepartmentId) AS AverageSalariesInDepartments ON Employee.DepartmentId = AverageSalariesInDepartments.DepartmentId
+WHERE Employee.Salary < AverageSalariesInDepartments.AverageSalary;
 --6.14
-SELECT 
-FROM ;
+SELECT OutterSelect.FirstName, OutterSelect.LastName, (
+	SELECT AVG(Employee.Salary) AS AverageSalary
+	FROM Employee
+	WHERE Employee.DepartmentId = OutterSelect.DepartmentId) AS AverageSalaryInDepartment
+FROM Employee AS OutterSelect;
 --6.15
-SELECT 
-FROM ;
+SELECT OutterSelect.FirstName, OutterSelect.LastName, (
+	SELECT COUNT(Employee.Id)
+	FROM Employee
+	WHERE Employee.Gender = OutterSelect.Gender) AS NumberOfEmployeesOfSameGender
+FROM Employee AS OutterSelect;
 --6.16
-SELECT 
-FROM ;
+SELECT Managers.FirstName, Managers.LastName, Managers.Salary / (
+	SELECT SUM(Employee.Salary)
+	FROM Employee
+	WHERE Managers.DepartmentId = Employee.DepartmentId) * 100 AS PercentageShareOfManagersSalaryInDepartmentsSalaryExpenses
+FROM Employee AS Managers
+INNER JOIN Department ON Managers.Id = Department.ManagerId;
 --6.17
-SELECT 
-FROM ;
+SELECT Employee.*
+FROM Employee
+WHERE Employee.Id NOT IN (
+	SELECT Department.ManagerId
+	FROM Department);
 /*Rozdzia³ 6. Podzapytania
 Zadania do samodzielnego wykonania
 6.1*/
-SELECT 
-FROM ;
+SELECT Product.*
+FROM Product
+WHERE Product.Price > (
+	SELECT AVG(Product.Price)
+	FROM Product);
 --6.2
-SELECT 
-FROM ;
+SELECT Product.*, Product.Price - (
+	SELECT AVG(Product.Price)
+	FROM Product) AS DifferenceBetweenProductsPriceAndAveragePrice
+FROM Product;
 --6.3
-SELECT 
-FROM ;
+SELECT OutterSelect.*
+FROM Product AS OutterSelect
+WHERE OutterSelect.Price > (
+	SELECT AVG(Product.Price)
+	FROM Product
+	WHERE Product.CategoryId = OutterSelect.CategoryId);
 --6.4
-SELECT 
-FROM ;
+SELECT Orders.OrderNumber
+FROM Orders
+WHERE Orders.OrderTotal = (
+	SELECT MAX(Orders.OrderTotal)
+	FROM Orders);
 --6.5
-SELECT 
-FROM ;
+SELECT (
+	SELECT COUNT(OrderDetails.ProductId)
+	FROM OrderDetails) / COUNT(Orders.Id) AS AverageNumberOfPositionsPerOrder
+FROM Orders;
 --6.6
-SELECT 
-FROM ;
+SELECT 'Small orders' AS Description, COUNT(Orders.Id) AS NumberOfOrders
+FROM Orders
+WHERE Orders.OrderTotal <= 1000
+UNION ALL
+SELECT 'Small orders', COUNT(Orders.Id)
+FROM Orders
+WHERE Orders.OrderTotal BETWEEN 1001 AND 1499
+UNION ALL
+SELECT 'Large orders', COUNT(Orders.Id)
+FROM Orders
+WHERE Orders.OrderTotal > 1500;
 --6.7
-SELECT 
-FROM ;
+SELECT Orders.*
+FROM Orders
+INNER JOIN (SELECT OrderDetails.OrderId, SUM(OrderDetails.Quantity * OrderDetails.UnitCost) AS Value
+	FROM OrderDetails
+	GROUP BY OrderDetails.OrderId) AS RealOrdersValue ON RealOrdersValue.OrderId = Orders.Id
+WHERE Orders.OrderTotal <> RealOrdersValue.Value;
 --6.8
-SELECT 
-FROM ;
+SELECT Orders.*
+FROM Orders
+WHERE DATEPART(MONTH, Orders.OrderDate) = (
+	SELECT COUNT(OrderDetails.ProductId)
+	FROM OrderDetails
+	WHERE Orders.Id = OrderDetails.OrderId);
 --6.9
-SELECT 
-FROM ;
+SELECT Product.*, (
+	SELECT ProductCategory.Name
+	FROM ProductCategory
+	WHERE ProductCategory.Id = Product.CategoryId) AS ProductCategoryName, (
+	)
+FROM Product;
 --6.10
 SELECT 
 FROM ;
